@@ -1,0 +1,10 @@
+services:
+  api:
+    image: kacperhemperek/tw-api:latest
+    ports:
+      - 1337:1337
+
+  web:
+    image: kacperhemperek/tw-web:latest
+    ports:
+      - 2137:80

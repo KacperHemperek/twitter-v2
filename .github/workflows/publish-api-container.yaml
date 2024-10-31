@@ -36,5 +36,3 @@ jobs:
           file: ./api/Dockerfile
           push: true
           tags: kacperhemperek/tw-api:latest
-          platforms:
-            - "linux/amd64"
