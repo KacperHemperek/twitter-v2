@@ -32,7 +32,7 @@ jobs:
         id: push
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./api/Dockerfile
+          context: ./api
+          file: ./Dockerfile
           push: true
           tags: kacperhemperek/tw-api:latest
