@@ -37,7 +37,7 @@ jobs:
           push: true
           tags: kacperhemperek/tw-api:latest
 
-  push_to_registry:
+  push_frontend_to_registry:
     name: Build and push frontend container
     runs-on: ubuntu-latest
     permissions:
@@ -67,7 +67,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy Application
-    needs: [docker_build]
+    needs: [push_frontend_to_registry, push_api_to_registry]
     steps:
       - name: Deploy using ssh
         uses: appleboy/ssh-action@master
