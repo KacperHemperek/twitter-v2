@@ -6,6 +6,6 @@ docker compose -p twitter stop
 docker pull kacperhemperek/tw-api:latest
 docker pull kacperhemperek/tw-api:latest
 
-docker compose up -d
+docker compose -p twitter up -d
 
 echo "Application Started"
