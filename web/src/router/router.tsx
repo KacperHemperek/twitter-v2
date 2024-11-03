@@ -4,6 +4,7 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { RootPage } from "./routes/base";
+import { HomePage } from "./routes/home";
 
 const rootRoute = createRootRoute({
   component: RootPage,
@@ -12,7 +13,7 @@ const rootRoute = createRootRoute({
 const index = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: () => <div>This is root route</div>,
+  component: HomePage,
 });
 
 const routes = [index];
