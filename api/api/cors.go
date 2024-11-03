@@ -1,18 +1,17 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
 
-var frontendURL = os.Getenv("FRONTEND_URL")
-
 func ApplyCors(r *mux.Router) http.Handler {
+	slog.Info("cors", "frontendURL", ENV.FRONTEND_URL)
 	opts := cors.Options{
-		AllowedOrigins:   []string{frontendURL},
+		AllowedOrigins:   []string{ENV.FRONTEND_URL},
 		AllowCredentials: true,
 	}
 	return cors.New(opts).Handler(r)

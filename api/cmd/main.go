@@ -10,6 +10,10 @@ import (
 	"github.com/kacperhemperek/twitter-v2/router"
 )
 
+func init() {
+	api.LoadEnv()
+}
+
 func main() {
 	r := router.New()
 	handler := api.ApplyCors(r)
