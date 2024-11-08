@@ -1,0 +1,37 @@
+services:
+  neo4j:
+    image: neo4j:latest
+    environment:
+      - NEO4J_AUTH=${DB_USERNAME}/${DB_PASSWORD} # Set default username/password
+    ports:
+      - "7687:7687" # Expose Bolt port for external connections if needed
+      - "7474:7474" # Expose Neo4j Browser HTTP interface
+    volumes:
+      - ../db/data/:/data
+      - ../db/logs:/logs
+
+  # This is just a dev container that runs air inside
+  api:
+    container_name: twitter-api-dev
+    image: cosmtrek/air
+    # working_dir value has to be the same of mapped volume
+    working_dir: /api
+    ports:
+      - 1337:1337
+    environment:
+      - FRONTEND_URL=${FRONTEND_URL}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_URL=${DB_URL}
+    volumes:
+      - ../api/:/api/
+
+  # web:
+  #   image: tw-frontend:dev
+  #   build:
+  #     context: ./web
+  #     dockerfile: Dev.Dockerfile
+  #   ports:
+  #     - 3001:3001
+  #   volumes:
+  #     - ./web/:/web/

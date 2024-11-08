@@ -8,3 +8,18 @@ services:
     image: kacperhemperek/tw-web:latest
     ports:
       - 2137:80
+
+  neo4j:
+    image: neo4j:5
+    environment:
+      - NEO4J_AUTH=${DB_USERNAME}/${DB_PASSWORD} # Set default username/password
+    ports:
+      # Only expose the bold to not enable connecting to database borwser
+      - "7687:7687" # Expose Bolt port for external connections if needed
+    volumes:
+      - tw_db_data:/data
+      - tw_db_logs:/logs
+
+volumes:
+  tw_db_data:
+  tw_db_logs:

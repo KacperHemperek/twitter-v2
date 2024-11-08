@@ -11,6 +11,7 @@ type env struct {
 	FRONTEND_URL string
 	DB_PASSWORD  string
 	DB_USERNAME  string
+	DB_URL       string
 }
 
 // NOTE: this will have all variables defined in the env file
@@ -28,16 +29,18 @@ func LoadEnv() {
 	frontendURL := loadVar("FRONTEND_URL", "http://localhost:3001")
 	dbPassword := loadVar("DB_PASSWORD", "secret")
 	dbUsername := loadVar("DB_USERNAME", "neo4j")
+	dbUrl := loadVar("DB_URL", "bold://neo4j:7687")
 
 	if ENV != nil {
 		slog.Error("env", "message", "ENV already loaded")
-		return
+		panic(1)
 	}
 
 	ENV = &env{
 		FRONTEND_URL: frontendURL,
 		DB_PASSWORD:  dbPassword,
 		DB_USERNAME:  dbUsername,
+		DB_URL:       dbUrl,
 	}
 }
 

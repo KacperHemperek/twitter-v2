@@ -5,9 +5,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/kacperhemperek/twitter-v2/api"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
-func New() *mux.Router {
+func New(db neo4j.DriverWithContext) *mux.Router {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/healthcheck", api.Handle(func(w http.ResponseWriter, r *http.Request) error {

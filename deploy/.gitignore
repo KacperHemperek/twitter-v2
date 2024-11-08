@@ -1,0 +1,4 @@
+.env
+
+# Temporary build files from AIR container
+api

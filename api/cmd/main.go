@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -15,16 +16,18 @@ func init() {
 }
 
 func main() {
-	r := router.New()
+	db := api.NewDB()
+	r := router.New(db)
 	handler := api.ApplyCors(r)
 
+	p := 1337
 	server := &http.Server{
 		Handler:      handler,
-		Addr:         "0.0.0.0:1337",
+		Addr:         fmt.Sprintf("0.0.0.0:%d", p),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
-	fmt.Println("Server listening on :1337")
+	slog.Info("main", "message", fmt.Sprintf("server listening on port :%d", p))
 	log.Fatalln(server.ListenAndServe())
 }
