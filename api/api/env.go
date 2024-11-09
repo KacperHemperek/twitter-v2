@@ -22,8 +22,7 @@ func LoadEnv() {
 	err := godotenv.Load()
 
 	if err != nil {
-		slog.Error("env", "load err", err)
-		panic(1)
+		slog.Error("env", "message", "could not load env from .env file, env will default to system env", "error", err)
 	}
 
 	frontendURL := loadVar("FRONTEND_URL", "http://localhost:3001")
