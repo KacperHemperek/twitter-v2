@@ -41,6 +41,8 @@ jobs:
           file: ./api/Dockerfile
           push: true
           tags: kacperhemperek/tw-api:latest
+          cache-from: type=inline,ref=kacperhemperek/tw-api:latest
+          cache-to: type=inline
 
   push_frontend_to_registry:
     name: Build and push frontend container
@@ -74,6 +76,8 @@ jobs:
           file: ./web/Dockerfile
           push: true
           tags: kacperhemperek/tw-web:latest
+          cache-from: type=inline,ref=kacperhemperek/tw-web:latest
+          cache-to: type=inline
 
   deploy:
     runs-on: ubuntu-latest
