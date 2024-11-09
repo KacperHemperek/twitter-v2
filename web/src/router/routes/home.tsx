@@ -8,7 +8,7 @@ export const HomePage = () => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["test"],
     queryFn: async () => {
-      const res = await fetch("http://localhost:1337/healthcheck", {
+      const res = await fetch(`/api/healthcheck`, {
         headers: {
           "Content-Type": "application/json",
         },
