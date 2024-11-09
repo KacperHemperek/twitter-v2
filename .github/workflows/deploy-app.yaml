@@ -91,4 +91,5 @@ jobs:
           script: |
             cd twitter-v2
             git pull
-            bash ./deploy/deploy.sh
+            cd deploy
+            bash ./deploy.sh
