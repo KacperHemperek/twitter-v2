@@ -10,6 +10,7 @@ services:
       - DB_URL=${DB_URL}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
 
   web:
     image: kacperhemperek/tw-web:latest

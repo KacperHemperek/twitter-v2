@@ -23,15 +23,8 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_USERNAME=${DB_USERNAME}
       - DB_URL=${DB_URL}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
     volumes:
       - ../api/:/api/
-
-  # web:
-  #   image: tw-frontend:dev
-  #   build:
-  #     context: ./web
-  #     dockerfile: Dev.Dockerfile
-  #   ports:
-  #     - 3001:3001
-  #   volumes:
-  #     - ./web/:/web/
