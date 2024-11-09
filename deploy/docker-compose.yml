@@ -3,6 +3,11 @@ services:
     image: kacperhemperek/tw-api:latest
     ports:
       - 1337:1337
+    environment:
+      - FRONTEND_URL=${FRONTEND_URL}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_URL=${DB_URL}
 
   web:
     image: kacperhemperek/tw-web:latest

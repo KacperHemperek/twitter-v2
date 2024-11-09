@@ -28,7 +28,7 @@ func LoadEnv() {
 	frontendURL := loadVar("FRONTEND_URL", "http://localhost:3001")
 	dbPassword := loadVar("DB_PASSWORD", "secret")
 	dbUsername := loadVar("DB_USERNAME", "neo4j")
-	dbUrl := loadVar("DB_URL", "bold://neo4j:7687")
+	dbUrl := loadVar("DB_URL", "bolt://neo4j:7687")
 
 	if ENV != nil {
 		slog.Error("env", "message", "ENV already loaded")
