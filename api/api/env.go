@@ -9,6 +9,7 @@ import (
 
 type env struct {
 	FRONTEND_URL         string
+	API_URL              string
 	DB_PASSWORD          string
 	DB_USERNAME          string
 	DB_URL               string
@@ -31,6 +32,7 @@ func LoadEnv() {
 	}
 
 	frontendURL := loadVar("FRONTEND_URL", "http://localhost:3001")
+	apiURL := loadVar("API_URL", "http://localhost:1337")
 	dbPassword := loadVar("DB_PASSWORD", "secret")
 	dbUsername := loadVar("DB_USERNAME", "neo4j")
 	dbUrl := loadVar("DB_URL", "bolt://neo4j:7687")
@@ -47,6 +49,7 @@ func LoadEnv() {
 
 	ENV = &env{
 		FRONTEND_URL:         frontendURL,
+		API_URL:              apiURL,
 		DB_PASSWORD:          dbPassword,
 		DB_USERNAME:          dbUsername,
 		DB_URL:               dbUrl,

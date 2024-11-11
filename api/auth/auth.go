@@ -21,8 +21,12 @@ import (
 
 func Setup() {
 	slog.Info("auth", "message", "setting up oauth")
+	callbackURL, err := url.JoinPath(api.ENV.API_URL, "api", "auth", "google", "callback")
+	if err != nil {
+		slog.Error("auth", "message", "could not create callback url", "error", err)
+	}
 	goth.UseProviders(
-		google.New(api.ENV.GOOGLE_CLIENT_ID, api.ENV.GOOGLE_CLIENT_SECRET, "http://localhost:1337/api/auth/google/callback"),
+		google.New(api.ENV.GOOGLE_CLIENT_ID, api.ENV.GOOGLE_CLIENT_SECRET, callbackURL),
 	)
 	slog.Info("auth", "message", "oauth correctly setup")
 }
