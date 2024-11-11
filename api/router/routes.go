@@ -16,7 +16,7 @@ func New(userService services.UserService) *mux.Router {
 		return api.JSON(w, map[string]any{"message": "OK"}, http.StatusOK)
 	})).Methods(http.MethodGet)
 
-	r.HandleFunc("/api/auth/{provider}/login", api.Handle(auth.LoginHandler())).Methods(http.MethodGet)
+	r.HandleFunc("/api/auth/{provider}/login", api.Handle(auth.LoginHandler(userService))).Methods(http.MethodGet)
 	r.HandleFunc("/api/auth/{provider}/callback", api.Handle(auth.AuthCallbackHanlder(userService))).Methods(http.MethodGet)
 	r.HandleFunc("/api/auth/{provider}/login", api.Handle(auth.LogoutHandler())).Methods(http.MethodGet)
 

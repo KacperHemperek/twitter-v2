@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/kacperhemperek/twitter-v2/api"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j/dbtype"
 )
 
 type UserService struct {
@@ -17,7 +19,7 @@ type UserService struct {
 var ErrUserNotFound = errors.New("user not found")
 var ErrInvalidUserQueryResponse = errors.New("invalid user query response")
 
-func (s UserService) GetByEmail(ctx context.Context, email string) (user any, err error) {
+func (s UserService) GetByEmail(ctx context.Context, email string) (user *UserModel, err error) {
 	defer func() {
 		if err != nil {
 			LogServiceError("user", "find user by email", err)
@@ -42,27 +44,50 @@ func (s UserService) GetByEmail(ctx context.Context, email string) (user any, er
 		return nil, ErrUserNotFound
 	}
 
-	user, ok := result.Records[0].Get("user")
+	rawUser, ok := result.Records[0].Get("user")
 
 	if !ok {
 		return nil, ErrInvalidUserQueryResponse
 	}
 
-	return user, nil
+	switch userNode := rawUser.(type) {
+	case dbtype.Node:
+		err := mapstructure.Decode(userNode.GetProperties(), &user)
+		if err != nil {
+			return nil, ErrInvalidUserQueryResponse
+		}
+		return user, nil
+	default:
+		return nil, ErrInvalidUserQueryResponse
+	}
 }
 
-func (s UserService) CreateUser(ctx context.Context, email, name string) (user any, err error) {
+func (s UserService) CreateUser(ctx context.Context, email, name, avatar string) (user *UserModel, err error) {
 	defer func() {
 		if err != nil {
 			LogServiceError("user", "create a user", err)
 		}
 	}()
-	q := `CREATE (user:User { email: $email, name: $name }) RETURN user LIMIT 1`
+	q := `
+    CREATE (user:User {
+        id: randomUUID(),
+        email: $email,
+        name: $name,
+        image: $image,
+        background: $background
+    })
+    RETURN user LIMIT 1
+    `
 	result, err := neo4j.ExecuteQuery(
 		ctx,
 		s.db,
 		q,
-		map[string]any{"email": email, "name": name},
+		map[string]any{
+			"email":      email,
+			"name":       name,
+			"image":      avatar,
+			"background": "",
+		},
 		neo4j.EagerResultTransformer,
 		neo4j.ExecuteQueryWithDatabase(api.ENV.DB_NAME),
 	)
@@ -76,13 +101,22 @@ func (s UserService) CreateUser(ctx context.Context, email, name string) (user a
 		return nil, err
 	}
 
-	user, ok := result.Records[0].Get("user")
+	rawUser, ok := result.Records[0].Get("user")
 
 	if !ok {
 		return nil, ErrInvalidUserQueryResponse
 	}
 
-	return user, nil
+	switch userNode := rawUser.(type) {
+	case dbtype.Node:
+		err := mapstructure.Decode(userNode.GetProperties(), &user)
+		if err != nil {
+			return nil, ErrInvalidUserQueryResponse
+		}
+		return user, nil
+	default:
+		return nil, ErrInvalidUserQueryResponse
+	}
 }
 
 func NewUserService(db neo4j.DriverWithContext) *UserService {
