@@ -12,6 +12,7 @@ type env struct {
 	DB_PASSWORD          string
 	DB_USERNAME          string
 	DB_URL               string
+	DB_NAME              string
 	GOOGLE_CLIENT_ID     string
 	GOOGLE_CLIENT_SECRET string
 	SESSION_SECRET       string
@@ -32,10 +33,10 @@ func LoadEnv() {
 	dbPassword := loadVar("DB_PASSWORD", "secret")
 	dbUsername := loadVar("DB_USERNAME", "neo4j")
 	dbUrl := loadVar("DB_URL", "bolt://neo4j:7687")
+	dbName := loadVar("DB_NAME", "neo4j")
 	googleClientID := loadVar("GOOGLE_CLIENT_ID", "google_client_id")
 	googleClientSecret := loadVar("GOOGLE_CLIENT_SECRET", "google_secret")
 	sessionSecret := loadVar("SESSION_SECRET", "session_secret123")
-	slog.Info("env", "secret", sessionSecret)
 
 	if ENV != nil {
 		slog.Error("env", "message", "ENV already loaded")
@@ -47,6 +48,7 @@ func LoadEnv() {
 		DB_PASSWORD:          dbPassword,
 		DB_USERNAME:          dbUsername,
 		DB_URL:               dbUrl,
+		DB_NAME:              dbName,
 		GOOGLE_CLIENT_ID:     googleClientID,
 		GOOGLE_CLIENT_SECRET: googleClientSecret,
 		SESSION_SECRET:       sessionSecret,

@@ -10,6 +10,7 @@ import (
 	"github.com/kacperhemperek/twitter-v2/api"
 	"github.com/kacperhemperek/twitter-v2/auth"
 	"github.com/kacperhemperek/twitter-v2/router"
+	"github.com/kacperhemperek/twitter-v2/services"
 )
 
 func init() {
@@ -19,7 +20,10 @@ func init() {
 func main() {
 	auth.Setup()
 	db := api.NewDB()
-	r := router.New(db)
+
+	userService := services.NewUserService(db)
+
+	r := router.New(*userService)
 	handler := api.ApplyCors(r)
 
 	p := 1337

@@ -6,10 +6,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/kacperhemperek/twitter-v2/api"
 	"github.com/kacperhemperek/twitter-v2/auth"
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/kacperhemperek/twitter-v2/services"
 )
 
-func New(db neo4j.DriverWithContext) *mux.Router {
+func New(userService services.UserService) *mux.Router {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/api/healthcheck", api.Handle(func(w http.ResponseWriter, r *http.Request) error {
@@ -17,7 +17,7 @@ func New(db neo4j.DriverWithContext) *mux.Router {
 	})).Methods(http.MethodGet)
 
 	r.HandleFunc("/api/auth/{provider}/login", api.Handle(auth.LoginHandler())).Methods(http.MethodGet)
-	r.HandleFunc("/api/auth/{provider}/callback", api.Handle(auth.AuthCallbackHanlder())).Methods(http.MethodGet)
+	r.HandleFunc("/api/auth/{provider}/callback", api.Handle(auth.AuthCallbackHanlder(userService))).Methods(http.MethodGet)
 	r.HandleFunc("/api/auth/{provider}/login", api.Handle(auth.LogoutHandler())).Methods(http.MethodGet)
 
 	return r
