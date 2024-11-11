@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/kacperhemperek/twitter-v2/api"
 	"github.com/kacperhemperek/twitter-v2/services"
 	"github.com/markbates/goth"
@@ -37,7 +39,7 @@ func AuthCallbackHanlder(userService services.UserService) api.HandlerFunc {
 			return err
 		}
 
-		_, err = getOrCreateUser(r.Context(), gothUser, userService)
+		user, err := getOrCreateUser(r.Context(), gothUser, userService)
 
 		// TODO: store access and refresh token in query params so the login page on frontend
 		// can store it in the memory
@@ -49,12 +51,19 @@ func AuthCallbackHanlder(userService services.UserService) api.HandlerFunc {
 		if err != nil {
 			return err
 		}
+		accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, getAccessTokenClaims(user))
+		accessTokenStr, err := accessToken.SignedString([]byte(api.ENV.JWT_SECRET))
+		if err != nil {
+			return err
+		}
+		refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, getRefreshTokenClaims(user))
+		refreshTokenStr, err := refreshToken.SignedString([]byte(api.ENV.JWT_SECRET))
+		if err != nil {
+			return err
+		}
 		query := redirectUrl.Query()
-		// TODO: get access token and refresh token from jwt lib
-		accessToken := "a_token"
-		refreshToken := "r_token"
-		query.Add("accessToken", accessToken)
-		query.Add("refreshToken", refreshToken)
+		query.Add("accessToken", accessTokenStr)
+		query.Add("refreshToken", refreshTokenStr)
 		redirectUrl.RawQuery = query.Encode()
 
 		http.Redirect(w, r, redirectUrl.String(), http.StatusTemporaryRedirect)
@@ -130,6 +139,28 @@ func getOrCreateUser(ctx context.Context, gothUser goth.User, userService servic
 	return user, nil
 }
 
+func getClaims(user *services.UserModel, exp time.Time) jwt.MapClaims {
+	return jwt.MapClaims{
+		"user": &UserToken{ID: user.ID, Email: user.Email, Name: user.Name},
+		"iat":  time.Now().Unix(),
+		"exp":  exp.Unix(),
+	}
+}
+
+func getAccessTokenClaims(user *services.UserModel) jwt.MapClaims {
+	return getClaims(user, time.Now().Add(time.Minute*15))
+}
+
+func getRefreshTokenClaims(user *services.UserModel) jwt.MapClaims {
+	return getClaims(user, time.Now().Add(time.Hour*24*30))
+}
+
 func generateRandomUserName() string {
 	return fmt.Sprintf("User%d", rand.IntN(99999-10000+1)+10000)
+}
+
+type UserToken struct {
+	ID    string `json:"id" mapstructure:"id"`
+	Email string `json:"email" mapstructure:"email"`
+	Name  string `json:"name" mapstructure:"name"`
 }

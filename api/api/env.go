@@ -16,6 +16,7 @@ type env struct {
 	GOOGLE_CLIENT_ID     string
 	GOOGLE_CLIENT_SECRET string
 	SESSION_SECRET       string
+	JWT_SECRET           string
 }
 
 // NOTE: this will have all variables defined in the env file
@@ -37,6 +38,7 @@ func LoadEnv() {
 	googleClientID := loadVar("GOOGLE_CLIENT_ID", "google_client_id")
 	googleClientSecret := loadVar("GOOGLE_CLIENT_SECRET", "google_secret")
 	sessionSecret := loadVar("SESSION_SECRET", "session_secret123")
+	jwtSecret := loadVar("SESSION_SECRET", "jwt_secret123")
 
 	if ENV != nil {
 		slog.Error("env", "message", "ENV already loaded")
@@ -52,6 +54,7 @@ func LoadEnv() {
 		GOOGLE_CLIENT_ID:     googleClientID,
 		GOOGLE_CLIENT_SECRET: googleClientSecret,
 		SESSION_SECRET:       sessionSecret,
+		JWT_SECRET:           jwtSecret,
 	}
 }
 
