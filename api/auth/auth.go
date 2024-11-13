@@ -9,9 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/kacperhemperek/twitter-v2/api"
 	"github.com/kacperhemperek/twitter-v2/services"
 	"github.com/markbates/goth"
@@ -55,19 +53,18 @@ func AuthCallbackHanlder(userService services.UserService) api.HandlerFunc {
 		if err != nil {
 			return err
 		}
-		accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, getAccessTokenClaims(user))
-		accessTokenStr, err := accessToken.SignedString([]byte(api.ENV.JWT_SECRET))
+		token := NewUserToken(user.ID, user.Email, user.Name)
+		accessToken, err := token.SignAccessToken()
 		if err != nil {
 			return err
 		}
-		refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, getRefreshTokenClaims(user))
-		refreshTokenStr, err := refreshToken.SignedString([]byte(api.ENV.JWT_SECRET))
+		refreshToken, err := token.SignRefreshToken()
 		if err != nil {
 			return err
 		}
 		query := redirectUrl.Query()
-		query.Add("accessToken", accessTokenStr)
-		query.Add("refreshToken", refreshTokenStr)
+		query.Add("accessToken", accessToken)
+		query.Add("refreshToken", refreshToken)
 		redirectUrl.RawQuery = query.Encode()
 
 		http.Redirect(w, r, redirectUrl.String(), http.StatusTemporaryRedirect)
@@ -92,17 +89,47 @@ func LogoutHandler() api.HandlerFunc {
 func LoginHandler(userService services.UserService) api.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		if gothUser, err := gothic.CompleteUserAuth(w, r); err == nil {
-			_, nil := getOrCreateUser(r.Context(), gothUser, userService)
+			user, nil := getOrCreateUser(r.Context(), gothUser, userService)
 
 			if err != nil {
 				return nil
 			}
+
+			redirectUrlStr, err := url.JoinPath(api.ENV.FRONTEND_URL, "login", "success")
+			if err != nil {
+				return err
+			}
+			redirectUrl, err := url.Parse(redirectUrlStr)
+			if err != nil {
+				return err
+			}
+			token := NewUserToken(user.ID, user.Email, user.Name)
+			accessToken, err := token.SignAccessToken()
+			if err != nil {
+				return err
+			}
+			refreshToken, err := token.SignRefreshToken()
+			if err != nil {
+				return err
+			}
+			query := redirectUrl.Query()
+			query.Add("accessToken", accessToken)
+			query.Add("refreshToken", refreshToken)
+			redirectUrl.RawQuery = query.Encode()
+
+			http.Redirect(w, r, redirectUrl.String(), http.StatusTemporaryRedirect)
 			// TODO: parse token and add to client response
 			slog.Info("auth", "message", "user logged in successfully without redirect", "user", gothUser)
 		} else {
 			gothic.BeginAuthHandler(w, r)
 		}
 		return nil
+	}
+}
+
+func GetMeHandler() api.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		return api.JSON(w, map[string]string{"user": "user info"}, http.StatusOK)
 	}
 }
 
@@ -143,28 +170,6 @@ func getOrCreateUser(ctx context.Context, gothUser goth.User, userService servic
 	return user, nil
 }
 
-func getClaims(user *services.UserModel, exp time.Time) jwt.MapClaims {
-	return jwt.MapClaims{
-		"user": &UserToken{ID: user.ID, Email: user.Email, Name: user.Name},
-		"iat":  time.Now().Unix(),
-		"exp":  exp.Unix(),
-	}
-}
-
-func getAccessTokenClaims(user *services.UserModel) jwt.MapClaims {
-	return getClaims(user, time.Now().Add(time.Minute*15))
-}
-
-func getRefreshTokenClaims(user *services.UserModel) jwt.MapClaims {
-	return getClaims(user, time.Now().Add(time.Hour*24*30))
-}
-
 func generateRandomUserName() string {
 	return fmt.Sprintf("User%d", rand.IntN(99999-10000+1)+10000)
-}
-
-type UserToken struct {
-	ID    string `json:"id" mapstructure:"id"`
-	Email string `json:"email" mapstructure:"email"`
-	Name  string `json:"name" mapstructure:"name"`
 }
