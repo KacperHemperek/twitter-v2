@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/kacperhemperek/twitter-v2/api"
+	"github.com/kacperhemperek/twitter-v2/models"
 	"github.com/kacperhemperek/twitter-v2/services"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -29,56 +30,53 @@ func Setup() {
 	slog.Info("auth", "message", "oauth correctly setup")
 }
 
-// TODO:
-// - replace dev google keys with prod keys on prod server
-// - add more options than just google to auth (discord, twitter(?))
+func AuthCallbackHanlder(userService services.UserService, sessionService SessionService) api.HandlerFunc {
+	return func(w http.ResponseWriter, r *api.Request) error {
+		user, err := r.User()
 
-func AuthCallbackHanlder(userService services.UserService) api.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		gothUser, err := gothic.CompleteUserAuth(w, r)
+		if err == nil && user != nil {
+			return api.NewBadRequestError(
+				"user is already logged in")
+		}
+
+		gothUser, err := gothic.CompleteUserAuth(w, r.Request)
 
 		if err != nil {
 			return err
 		}
 
-		user, err := getOrCreateUser(r.Context(), gothUser, userService)
+		user, err = getOrCreateUser(r.Context(), gothUser, userService)
 
-		// TODO: store access and refresh token in query params so the login page on frontend
-		// can store it in the memory
 		redirectUrlStr, err := url.JoinPath(api.ENV.FRONTEND_URL, "login", "success")
 		if err != nil {
 			return err
 		}
-		redirectUrl, err := url.Parse(redirectUrlStr)
+		sess, err := sessionService.CreateSession(r.Context(), user.ID)
 		if err != nil {
 			return err
 		}
-		token := NewUserToken(user.ID, user.Email, user.Name)
-		accessToken, err := token.SignAccessToken()
-		if err != nil {
-			return err
-		}
-		refreshToken, err := token.SignRefreshToken()
-		if err != nil {
-			return err
-		}
-		query := redirectUrl.Query()
-		query.Add("accessToken", accessToken)
-		query.Add("refreshToken", refreshToken)
-		redirectUrl.RawQuery = query.Encode()
 
-		http.Redirect(w, r, redirectUrl.String(), http.StatusTemporaryRedirect)
+		SetSessionCookie(w, sess.ID)
+		http.Redirect(w, r.Request, redirectUrlStr, http.StatusTemporaryRedirect)
 		return nil
 	}
 }
 
-func LogoutHandler() api.HandlerFunc {
+func LogoutHandler(sessionService SessionService) api.HandlerFunc {
 	type response struct {
 		Message string `json:"message"`
 	}
-	return func(w http.ResponseWriter, r *http.Request) error {
-		// TODO: actually logout user (remove session/token or w/e)
-		gothic.Logout(w, r)
+	return func(w http.ResponseWriter, r *api.Request) error {
+		sess, err := r.Session()
+		if err != nil {
+			return err
+		}
+		err = sessionService.DeleteSession(r.Context(), sess.ID)
+		if err != nil {
+			return err
+		}
+		gothic.Logout(w, r.Request)
+		ClearSessionCookie(w)
 		res := &response{
 			Message: "user logged out successfully",
 		}
@@ -86,9 +84,18 @@ func LogoutHandler() api.HandlerFunc {
 	}
 }
 
-func LoginHandler(userService services.UserService) api.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		if gothUser, err := gothic.CompleteUserAuth(w, r); err == nil {
+func LoginHandler(userService services.UserService, sessionService SessionService) api.HandlerFunc {
+	return func(w http.ResponseWriter, r *api.Request) error {
+		user, err := r.User()
+
+		if err == nil && user != nil {
+			return &api.APIError{
+				Message: "user is already logged in",
+				Status:  http.StatusBadRequest,
+			}
+		}
+
+		if gothUser, err := gothic.CompleteUserAuth(w, r.Request); err == nil {
 			user, nil := getOrCreateUser(r.Context(), gothUser, userService)
 
 			if err != nil {
@@ -99,41 +106,30 @@ func LoginHandler(userService services.UserService) api.HandlerFunc {
 			if err != nil {
 				return err
 			}
-			redirectUrl, err := url.Parse(redirectUrlStr)
+			sess, err := sessionService.CreateSession(r.Context(), user.ID)
 			if err != nil {
 				return err
 			}
-			token := NewUserToken(user.ID, user.Email, user.Name)
-			accessToken, err := token.SignAccessToken()
-			if err != nil {
-				return err
-			}
-			refreshToken, err := token.SignRefreshToken()
-			if err != nil {
-				return err
-			}
-			query := redirectUrl.Query()
-			query.Add("accessToken", accessToken)
-			query.Add("refreshToken", refreshToken)
-			redirectUrl.RawQuery = query.Encode()
-
-			http.Redirect(w, r, redirectUrl.String(), http.StatusTemporaryRedirect)
-			// TODO: parse token and add to client response
-			slog.Info("auth", "message", "user logged in successfully without redirect", "user", gothUser)
+			SetSessionCookie(w, sess.ID)
+			http.Redirect(w, r.Request, redirectUrlStr, http.StatusTemporaryRedirect)
 		} else {
-			gothic.BeginAuthHandler(w, r)
+			gothic.BeginAuthHandler(w, r.Request)
 		}
 		return nil
 	}
 }
 
 func GetMeHandler() api.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		return api.JSON(w, map[string]string{"user": "user info"}, http.StatusOK)
+	return func(w http.ResponseWriter, r *api.Request) error {
+		user, err := r.User()
+		if err != nil {
+			return err
+		}
+		return api.JSON(w, map[string]any{"user": user}, http.StatusOK)
 	}
 }
 
-func getOrCreateUser(ctx context.Context, gothUser goth.User, userService services.UserService) (user *services.UserModel, err error) {
+func getOrCreateUser(ctx context.Context, gothUser goth.User, userService services.UserService) (user *models.UserModel, err error) {
 
 	user, err = userService.GetByEmail(ctx, gothUser.Email)
 	isNotFoundError := errors.Is(err, services.ErrUserNotFound)

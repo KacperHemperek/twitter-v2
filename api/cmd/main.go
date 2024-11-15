@@ -22,8 +22,9 @@ func main() {
 	db := api.NewDB()
 
 	userService := services.NewUserService(db)
+	sessionService := auth.NewSessionService(db)
 
-	r := router.New(*userService)
+	r := router.New(*userService, *sessionService)
 	handler := api.ApplyCors(r)
 
 	p := 1337

@@ -18,6 +18,11 @@ type env struct {
 	GOOGLE_CLIENT_SECRET string
 	SESSION_SECRET       string
 	JWT_SECRET           string
+	ENVIRONMENT          string
+}
+
+func (e env) IsProd() bool {
+	return e.ENVIRONMENT == "production"
 }
 
 // NOTE: this will have all variables defined in the env file

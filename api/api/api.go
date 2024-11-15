@@ -1,19 +1,64 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+
+	"github.com/kacperhemperek/twitter-v2/models"
 )
 
-type HandlerFunc = func(w http.ResponseWriter, r *http.Request) error
+var (
+	ErrNoUserInRequest    = errors.New("user not found in request context")
+	ErrNoSessionInRequest = errors.New("session not found in request context")
+)
+
+const SESSION_CTX_KEY = "session"
+const USER_CTX_KEY = "user"
+
+type Request struct {
+	*http.Request
+}
+
+func (r *Request) User() (*models.UserModel, error) {
+	user, ok := r.Context().Value(USER_CTX_KEY).(*models.UserModel)
+	if !ok {
+		return nil, ErrNoUserInRequest
+	}
+
+	return user, nil
+}
+
+func (r *Request) SetUser(u *models.UserModel) {
+	ctx := context.WithValue(r.Context(), USER_CTX_KEY, u)
+	r.Request = r.WithContext(ctx)
+}
+
+func (r *Request) Session() (*models.SessionModel, error) {
+	session, ok := r.Context().Value(SESSION_CTX_KEY).(*models.SessionModel)
+	if !ok {
+		return nil, ErrNoSessionInRequest
+	}
+
+	return session, nil
+}
+
+func (r *Request) SetSession(s *models.SessionModel) {
+	ctx := context.WithValue(r.Context(), SESSION_CTX_KEY, s)
+	r.Request = r.WithContext(ctx)
+}
+
+type HandlerFunc = func(w http.ResponseWriter, r *Request) error
 
 func Handle(h HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		err := h(w, r)
+		cr := &Request{
+			Request: r,
+		}
+		err := h(w, cr)
 
 		if err != nil {
 			var apiError *APIError
