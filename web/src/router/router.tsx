@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-router";
 import { RootPage } from "./routes/base";
 import { HomePage } from "./routes/home";
+import { LoginSuccess, LoginSuccessParams } from "./routes/login-success";
 
 const rootRoute = createRootRoute({
   component: RootPage,
@@ -16,7 +17,13 @@ const index = createRoute({
   component: HomePage,
 });
 
-const routes = [index];
+export const loginSuccess = createRoute({
+  getParentRoute: () => rootRoute,
+  component: LoginSuccess,
+  path: "/login/success",
+});
+
+const routes = [index, loginSuccess];
 
 const routeTree = rootRoute.addChildren(routes);
 

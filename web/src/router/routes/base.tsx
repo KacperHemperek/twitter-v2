@@ -1,6 +1,6 @@
 import { Outlet } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
-import { CombinedContext } from "../../components/context/combined";
+import { CombinedContext } from "../../components/context/combined.context";
 
 // Only load tanstack devtools in developement environment
 const DevTools =

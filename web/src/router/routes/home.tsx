@@ -1,40 +1,29 @@
-import { useQuery } from "@tanstack/react-query";
-
-type HealthCheckResponse = {
-  message: "string";
-};
+import { useAuth } from "../../components/context/auth.context";
 
 export const HomePage = () => {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["test"],
-    queryFn: async () => {
-      const res = await fetch(`/api/healthcheck`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+  const { user, logout } = useAuth();
 
-      const data = (await res.json()) as HealthCheckResponse;
-
-      if (!res.ok) {
-        throw new Error("Could not retrieve healthcheck data");
-      }
-
-      return data;
-    },
-  });
-
-  if (!data && isLoading) {
-    return <div>Loading healthcheck</div>;
-  }
-
-  if (!data && isError) {
-    return <div>API is not responding</div>;
-  }
-
-  if (!data) {
-    return <div>No data from endpoint</div>;
-  }
-
-  return <div>Response from healthcheck endpoint: {data.message}</div>;
+  return (
+    <div>
+      {user && (
+        <div className="flex flex-col gap-4">
+          Logged in as {user.name}{" "}
+          <button
+            onClick={() => logout()}
+            className="px-3 py-1 w-min bg-red-500 rounded"
+          >
+            Logout
+          </button>
+        </div>
+      )}
+      {!user && (
+        <a
+          href="http://localhost:1337/api/auth/google/login"
+          className="px-3 py-1 rounded bg-blue-500 text-white"
+        >
+          Login
+        </a>
+      )}
+    </div>
+  );
 };
