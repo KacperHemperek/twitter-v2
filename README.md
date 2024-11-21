@@ -4,9 +4,9 @@ This is a twitter clone that aims to implement most of the twitter functionality
 
 ## TODO
 
-- [ ] Authentication using OAUTH 
+- [x] Authentication using OAUTH 
     - [x] Backend side of the auth
-    - [ ] Frontend side of the auth
+    - [x] Frontend side of the auth
 - [ ] Create tweets when user is authenticated
 - [ ] Commnet and quote tweets
 - [ ] Like and retweet
