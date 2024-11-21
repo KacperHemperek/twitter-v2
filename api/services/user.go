@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"log/slog"
 
 	"github.com/kacperhemperek/twitter-v2/api"
 	"github.com/kacperhemperek/twitter-v2/lib/dbmap"
