@@ -53,9 +53,7 @@ func (s UserService) GetByEmail(ctx context.Context, email string) (user *models
 	switch userNode := rawUser.(type) {
 	case dbtype.Node:
 		user := &models.UserModel{}
-		slog.Debug("user service GetByMail", "user before decode", user)
 		err := dbmap.Decode(userNode.GetProperties(), user)
-		slog.Debug("user service GetByMail", "user after decode", user, "error", err)
 		if err != nil {
 			return nil, ErrInvalidUserQueryResponse
 		}
