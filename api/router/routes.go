@@ -19,7 +19,7 @@ func New(userService services.UserService, sessionService auth.SessionService) *
 
 	r.HandleFunc("/api/auth/{provider}/login", api.Handle(auth.LoginHandler(userService, sessionService))).Methods(http.MethodGet)
 	r.HandleFunc("/api/auth/{provider}/callback", api.Handle(auth.AuthCallbackHanlder(userService, sessionService))).Methods(http.MethodGet)
-	r.HandleFunc("/api/auth/{provider}/logout", api.Handle(authMiddleware(auth.LogoutHandler()))).Methods(http.MethodGet)
+	r.HandleFunc("/api/auth/logout", api.Handle(authMiddleware(auth.LogoutHandler(sessionService)))).Methods(http.MethodGet)
 
 	r.HandleFunc("/api/auth/me", api.Handle(authMiddleware(auth.GetMeHandler()))).Methods(http.MethodGet)
 

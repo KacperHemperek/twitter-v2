@@ -15,6 +15,7 @@ import (
 
 func init() {
 	api.LoadEnv()
+	api.SetupLogger()
 }
 
 func main() {

@@ -3,9 +3,10 @@ package services
 import (
 	"context"
 	"errors"
+	"log/slog"
 
-	"github.com/go-viper/mapstructure/v2"
 	"github.com/kacperhemperek/twitter-v2/api"
+	"github.com/kacperhemperek/twitter-v2/lib/dbmap"
 	"github.com/kacperhemperek/twitter-v2/models"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j/dbtype"
@@ -51,7 +52,10 @@ func (s UserService) GetByEmail(ctx context.Context, email string) (user *models
 
 	switch userNode := rawUser.(type) {
 	case dbtype.Node:
-		err := mapstructure.Decode(userNode.GetProperties(), &user)
+		user := &models.UserModel{}
+		slog.Debug("user service GetByMail", "user before decode", user)
+		err := dbmap.Decode(userNode.GetProperties(), user)
+		slog.Debug("user service GetByMail", "user after decode", user, "error", err)
 		if err != nil {
 			return nil, ErrInvalidUserQueryResponse
 		}
@@ -94,8 +98,10 @@ func (s UserService) GetByID(ctx context.Context, ID string) (user *models.UserM
 
 	switch userNode := rawUser.(type) {
 	case dbtype.Node:
-		err := mapstructure.Decode(userNode.GetProperties(), &user)
+		user := &models.UserModel{}
+		err = dbmap.Decode(userNode.GetProperties(), user)
 		if err != nil {
+			api.LogServiceError("user", "get by id", err)
 			return nil, ErrInvalidUserQueryResponse
 		}
 		return user, nil
@@ -151,7 +157,8 @@ func (s UserService) CreateUser(ctx context.Context, email, name, avatar string)
 
 	switch userNode := rawUser.(type) {
 	case dbtype.Node:
-		err := mapstructure.Decode(userNode.GetProperties(), &user)
+		user := &models.UserModel{}
+		err := dbmap.Decode(userNode.GetProperties(), user)
 		if err != nil {
 			return nil, ErrInvalidUserQueryResponse
 		}

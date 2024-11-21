@@ -36,7 +36,8 @@ func AuthCallbackHanlder(userService services.UserService, sessionService Sessio
 
 		if err == nil && user != nil {
 			return api.NewBadRequestError(
-				"user is already logged in")
+				"user is already logged in",
+			)
 		}
 
 		gothUser, err := gothic.CompleteUserAuth(w, r.Request)
@@ -57,6 +58,7 @@ func AuthCallbackHanlder(userService services.UserService, sessionService Sessio
 		}
 
 		SetSessionCookie(w, sess.ID)
+		slog.Info("auth", "message", "user logging in", "user", user)
 		http.Redirect(w, r.Request, redirectUrlStr, http.StatusTemporaryRedirect)
 		return nil
 	}
@@ -130,7 +132,6 @@ func GetMeHandler() api.HandlerFunc {
 }
 
 func getOrCreateUser(ctx context.Context, gothUser goth.User, userService services.UserService) (user *models.UserModel, err error) {
-
 	user, err = userService.GetByEmail(ctx, gothUser.Email)
 	isNotFoundError := errors.Is(err, services.ErrUserNotFound)
 

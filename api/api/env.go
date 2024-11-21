@@ -25,6 +25,10 @@ func (e env) IsProd() bool {
 	return e.ENVIRONMENT == "production"
 }
 
+func (e env) IsDebug() bool {
+	return e.ENVIRONMENT == "debug"
+}
+
 // NOTE: this will have all variables defined in the env file
 var ENV *env = nil
 

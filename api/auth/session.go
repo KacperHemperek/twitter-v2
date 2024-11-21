@@ -20,10 +20,6 @@ var (
 	ErrSessionNotFound           = errors.New("session not found")
 )
 
-func (m *models.SessionModel) IsExpired() bool {
-	return time.Now().After(m.Expiration)
-}
-
 type SessionService struct {
 	store neo4j.DriverWithContext
 }
@@ -83,7 +79,7 @@ func (s SessionService) DeleteSession(ctx context.Context, sessID string) (err e
 	}()
 
 	q := `
-	MATCH (session:Session { id: $ID }) DELETE session;
+	MATCH (session:Session { id: $ID }) DETACH DELETE session;
 	`
 	_, err = neo4j.ExecuteQuery(
 		ctx,
