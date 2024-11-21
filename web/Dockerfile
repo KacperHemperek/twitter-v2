@@ -1,5 +1,9 @@
 FROM node:20 AS build 
 
+ARG VITE_API_URL
+
+ENV VITE_API_URL=$VITE_API_URL
+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable

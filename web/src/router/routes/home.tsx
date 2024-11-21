@@ -18,7 +18,7 @@ export const HomePage = () => {
       )}
       {!user && (
         <a
-          href="http://localhost:1337/api/auth/google/login"
+          href={`${import.meta.env.VITE_API_URL}/api/auth/google/login`}
           className="px-3 py-1 rounded bg-blue-500 text-white"
         >
           Login

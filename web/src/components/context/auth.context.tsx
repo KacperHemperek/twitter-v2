@@ -11,7 +11,7 @@ const useAuthValue = () => {
   } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
-      const res = await fetch("http://localhost:1337/api/auth/me", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
@@ -34,12 +34,15 @@ const useAuthValue = () => {
 
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("http://localhost:1337/api/auth/logout", {
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/logout`,
+        {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       const body = await res.json();
       if (!res.ok) {
