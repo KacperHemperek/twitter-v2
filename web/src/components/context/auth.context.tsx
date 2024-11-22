@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { ApiErrorResponse, User } from "../../types";
+import { useNavigate } from "@tanstack/react-router";
 
 const useAuthValue = () => {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const {
     data: user,
@@ -28,8 +30,8 @@ const useAuthValue = () => {
     },
   });
 
-  const revalidateUser = () => {
-    qc.invalidateQueries({ queryKey: ["user"] });
+  const revalidateUser = async () => {
+    await qc.invalidateQueries({ queryKey: ["user"] });
   };
 
   const { mutate: logout } = useMutation({
@@ -50,7 +52,10 @@ const useAuthValue = () => {
       }
     },
     mutationKey: ["logout"],
-    onSuccess: () => revalidateUser(),
+    onSuccess: async () => {
+      await revalidateUser();
+      navigate({ to: "/login" });
+    },
   });
 
   return React.useMemo(

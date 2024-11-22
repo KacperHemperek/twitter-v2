@@ -6,6 +6,7 @@ import {
 import { RootPage } from "./routes/base";
 import { HomePage } from "./routes/home";
 import { LoginSuccess, LoginSuccessParams } from "./routes/login-success";
+import { LoginPage } from "./routes/login";
 
 const rootRoute = createRootRoute({
   component: RootPage,
@@ -17,13 +18,19 @@ const index = createRoute({
   component: HomePage,
 });
 
-export const loginSuccess = createRoute({
+const login = createRoute({
+  getParentRoute: () => rootRoute,
+  component: LoginPage,
+  path: "/login",
+});
+
+const loginSuccess = createRoute({
   getParentRoute: () => rootRoute,
   component: LoginSuccess,
   path: "/login/success",
 });
 
-const routes = [index, loginSuccess];
+const routes = [index, loginSuccess, login];
 
 const routeTree = rootRoute.addChildren(routes);
 
