@@ -3,7 +3,7 @@ import { lazy, Suspense } from "react";
 import { CombinedContext } from "../../components/context/combined.context";
 
 // Only load tanstack devtools in developement environment
-const DevTools =
+const RouterDevTools =
   process.env.NODE_ENV === "production"
     ? () => null
     : lazy(() =>
@@ -14,7 +14,7 @@ const DevTools =
 
 const TanstackDevTools = () => (
   <Suspense>
-    <DevTools />
+    <RouterDevTools toggleButtonProps={{ className: "-translate-y-10" }} />
   </Suspense>
 );
 
