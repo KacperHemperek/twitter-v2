@@ -5,7 +5,7 @@ import "net/http"
 func NewBadRequestError(m string) *APIError {
 	return &APIError{
 		Message: m,
-		Status:  http.StatusUnauthorized,
+		Status:  http.StatusBadRequest,
 	}
 }
 
