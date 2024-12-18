@@ -10,9 +10,14 @@ import (
 
 var (
 	ErrInvalidStruct = errors.New("result must be a struct to be decoded into")
+	ErrNilValue      = errors.New("value is nil")
 )
 
 func Decode(val map[string]any, result any) error {
+	if val == nil {
+		slog.Error("dbmap", "message", "val is nil")
+		return ErrNilValue
+	}
 	if result == nil {
 		slog.Error("dbmap", "message", "result is nil")
 		return ErrInvalidStruct

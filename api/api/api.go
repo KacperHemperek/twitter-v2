@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/kacperhemperek/twitter-v2/models"
 )
 
@@ -21,6 +22,7 @@ const USER_CTX_KEY = "user"
 
 type Request struct {
 	*http.Request
+	v *validator.Validate
 }
 
 func (r *Request) User() (*models.UserModel, error) {
@@ -51,13 +53,37 @@ func (r *Request) SetSession(s *models.SessionModel) {
 	r.Request = r.WithContext(ctx)
 }
 
+// Validates the request body casting it to the provided type if the validation passes
+func (r *Request) ValidateBody(val any) error {
+	err := json.NewDecoder(r.Body).Decode(val)
+	if err != nil {
+		return NewAPIError("Invalid request body", http.StatusBadRequest)
+	}
+	return r.v.Struct(val)
+}
+
+func NewRequest(r *http.Request, v *validator.Validate) *Request {
+	return &Request{
+		Request: r,
+		v:       validator.New(),
+	}
+}
+
 type HandlerFunc = func(w http.ResponseWriter, r *Request) error
 
-func Handle(h HandlerFunc) http.HandlerFunc {
+type APIHandler struct {
+	v *validator.Validate
+}
+
+func NewAPIHandler() *APIHandler {
+	return &APIHandler{
+		v: validator.New(),
+	}
+}
+
+func (ah *APIHandler) Handle(h HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cr := &Request{
-			Request: r,
-		}
+		cr := NewRequest(r, ah.v)
 		err := h(w, cr)
 
 		if err != nil {
