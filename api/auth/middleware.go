@@ -23,32 +23,39 @@ func NewAuthMiddleware(userService services.UserService, sessionService SessionS
 			}()
 			sessCookie, err := r.Cookie("sessionID")
 			if err != nil {
+				slog.Debug("auth middleware", "message", "session cookie not found")
 				return api.NewUnauthorizedError()
 			}
 			sess, err := sessionService.GetSession(r.Context(), sessCookie.Value)
 
 			if err != nil && errors.Is(err, ErrSessionNotFound) {
+				slog.Debug("auth middleware", "message", "session not found")
 				return api.NewUnauthorizedError()
 			}
 
 			if err != nil {
+				slog.Debug("auth middleware", "message", "unexpected error while getting session from store", "error", err)
 				return err
 			}
 
 			if sess.IsExpired() {
+				slog.Debug("auth middleware", "message", "session is expired")
 				return api.NewUnauthorizedError()
 			}
 
 			user, err := userService.GetByID(r.Context(), sess.UserID)
 			if err != nil && errors.Is(err, services.ErrUserNotFound) {
+				slog.Debug("auth middleware", "message", "user not found")
 				return api.NewUnauthorizedError()
 			}
 			if err != nil {
+				slog.Debug("auth middleware", "message", "unexpected error while getting user from store", "error", err)
 				return err
 			}
 
 			r.SetUser(user)
 			r.SetSession(sess)
+			slog.Debug("auth middleware", "message", "user is authorized, session is setup", "user", user)
 
 			return h(w, r)
 		}

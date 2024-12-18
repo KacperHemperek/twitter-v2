@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-viper/mapstructure/v2"
 	"github.com/kacperhemperek/twitter-v2/api"
+	"github.com/kacperhemperek/twitter-v2/lib/dbmap"
 	"github.com/kacperhemperek/twitter-v2/models"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j/dbtype"
@@ -55,13 +55,15 @@ func (s SessionService) GetSession(ctx context.Context, ID string) (sess *models
 
 	rawSession, ok := result.Records[0].Get("session")
 	if !ok {
+		slog.Debug("session service", "message", "session not found")
 		return nil, ErrInvalidSessionQueryResult
 	}
 
 	switch sessionNode := rawSession.(type) {
 	case dbtype.Node:
-		slog.Info("session service", "rawSession", sessionNode.GetProperties())
-		err = mapstructure.Decode(sessionNode.GetProperties(), &sess)
+		slog.Debug("session service", "rawSession", sessionNode.GetProperties())
+		sess := &models.SessionModel{}
+		err = dbmap.Decode(sessionNode.GetProperties(), sess)
 		if err != nil {
 			return nil, ErrInvalidSessionQueryResult
 		}
@@ -129,7 +131,8 @@ func (s SessionService) CreateSession(ctx context.Context, userID string) (sess 
 	}
 	switch sessionNode := rawSession.(type) {
 	case dbtype.Node:
-		err = mapstructure.Decode(sessionNode.GetProperties(), &sess)
+		sess := &models.SessionModel{}
+		err = dbmap.Decode(sessionNode.GetProperties(), sess)
 		if err != nil {
 			return nil, ErrInvalidSessionQueryResult
 		}
