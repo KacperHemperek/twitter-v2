@@ -1,2 +1,12 @@
 [*.go]
 indent_size = 4
+
+[*.ts]
+indent_size = 2
+
+[*.tsx]
+indent_size = 2
+
+[*.css]
+indent_size = 2
+
