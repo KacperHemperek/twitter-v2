@@ -24,7 +24,7 @@ type SessionService struct {
 	store neo4j.DriverWithContext
 }
 
-func (s SessionService) GetSession(ctx context.Context, ID string) (sess *models.SessionModel, err error) {
+func (s SessionService) GetByID(ctx context.Context, ID string) (sess *models.SessionModel, err error) {
 	defer func() {
 		if err != nil {
 			api.LogServiceError("session", "get session", err)
@@ -73,7 +73,7 @@ func (s SessionService) GetSession(ctx context.Context, ID string) (sess *models
 	}
 }
 
-func (s SessionService) DeleteSession(ctx context.Context, sessID string) (err error) {
+func (s SessionService) Delete(ctx context.Context, sessID string) (err error) {
 	defer func() {
 		if err != nil {
 			api.LogServiceError("session", "delete session", err)
@@ -95,7 +95,7 @@ func (s SessionService) DeleteSession(ctx context.Context, sessID string) (err e
 	return err
 }
 
-func (s SessionService) CreateSession(ctx context.Context, userID string) (sess *models.SessionModel, err error) {
+func (s SessionService) Create(ctx context.Context, userID string) (sess *models.SessionModel, err error) {
 	defer func() {
 		if err != nil {
 			api.LogServiceError("session", "create session", err)

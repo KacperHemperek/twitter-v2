@@ -26,7 +26,7 @@ func NewAuthMiddleware(userService services.UserService, sessionService SessionS
 				slog.Debug("auth middleware", "message", "session cookie not found")
 				return api.NewUnauthorizedError()
 			}
-			sess, err := sessionService.GetSession(r.Context(), sessCookie.Value)
+			sess, err := sessionService.GetByID(r.Context(), sessCookie.Value)
 
 			if err != nil && errors.Is(err, ErrSessionNotFound) {
 				slog.Debug("auth middleware", "message", "session not found")

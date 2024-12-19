@@ -10,7 +10,12 @@ import (
 	"github.com/kacperhemperek/twitter-v2/services"
 )
 
-func New(h *api.APIHandler, userService services.UserService, sessionService auth.SessionService) *mux.Router {
+func New(
+	h *api.APIHandler,
+	userService services.UserService,
+	sessionService auth.SessionService,
+	tweetService services.TweetService,
+) *mux.Router {
 	r := mux.NewRouter()
 	authMiddleware := auth.NewAuthMiddleware(userService, sessionService)
 
@@ -18,6 +23,7 @@ func New(h *api.APIHandler, userService services.UserService, sessionService aut
 		return api.JSON(w, map[string]any{"message": "OK"}, http.StatusOK)
 	})).Methods(http.MethodGet)
 
+	r.HandleFunc("/api/tweets", h.Handle(authMiddleware(handlers.CreateTweetHandler(tweetService)))).Methods(http.MethodPost)
 
 	r.HandleFunc("/api/auth/{provider}/login", h.Handle(auth.LoginHandler(userService, sessionService))).Methods(http.MethodGet)
 	r.HandleFunc("/api/auth/{provider}/callback", h.Handle(auth.AuthCallbackHanlder(userService, sessionService))).Methods(http.MethodGet)

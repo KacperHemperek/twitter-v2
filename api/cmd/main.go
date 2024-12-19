@@ -11,6 +11,7 @@ import (
 	"github.com/kacperhemperek/twitter-v2/auth"
 	"github.com/kacperhemperek/twitter-v2/router"
 	"github.com/kacperhemperek/twitter-v2/services"
+	"github.com/kacperhemperek/twitter-v2/store"
 )
 
 func init() {
@@ -19,15 +20,17 @@ func init() {
 }
 
 func main() {
+	slog.Info("main", "message", "starting application", "environment", api.ENV.ENVIRONMENT)
 	auth.Setup()
-	db := api.NewDB()
+	db := store.New()
 
 	userService := services.NewUserService(db)
 	sessionService := auth.NewSessionService(db)
+	tweetService := services.NewTweetService(db)
 
 	h := api.NewAPIHandler()
 
-	r := router.New(h, *userService, *sessionService)
+	r := router.New(h, *userService, *sessionService, *tweetService)
 	handler := api.ApplyCors(r)
 
 	p := 1337

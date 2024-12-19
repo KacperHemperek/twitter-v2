@@ -50,6 +50,7 @@ func LoadEnv() {
 	googleClientSecret := loadVar("GOOGLE_CLIENT_SECRET", "google_secret")
 	sessionSecret := loadVar("SESSION_SECRET", "session_secret123")
 	jwtSecret := loadVar("SESSION_SECRET", "jwt_secret123")
+	environtment := loadVar("ENVIRONMENT", "debug")
 
 	if ENV != nil {
 		slog.Error("env", "message", "ENV already loaded")
@@ -67,6 +68,7 @@ func LoadEnv() {
 		GOOGLE_CLIENT_SECRET: googleClientSecret,
 		SESSION_SECRET:       sessionSecret,
 		JWT_SECRET:           jwtSecret,
+		ENVIRONMENT:          environtment,
 	}
 }
 

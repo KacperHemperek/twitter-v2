@@ -52,7 +52,7 @@ func AuthCallbackHanlder(userService services.UserService, sessionService Sessio
 		if err != nil {
 			return err
 		}
-		sess, err := sessionService.CreateSession(r.Context(), user.ID)
+		sess, err := sessionService.Create(r.Context(), user.ID)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func LogoutHandler(sessionService SessionService) api.HandlerFunc {
 		if err != nil {
 			return err
 		}
-		err = sessionService.DeleteSession(r.Context(), sess.ID)
+		err = sessionService.Delete(r.Context(), sess.ID)
 		if err != nil {
 			return err
 		}
@@ -108,7 +108,7 @@ func LoginHandler(userService services.UserService, sessionService SessionServic
 			if err != nil {
 				return err
 			}
-			sess, err := sessionService.CreateSession(r.Context(), user.ID)
+			sess, err := sessionService.Create(r.Context(), user.ID)
 			if err != nil {
 				return err
 			}

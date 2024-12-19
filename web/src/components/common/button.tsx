@@ -1,18 +1,21 @@
 import { cva, VariantProps } from "class-variance-authority";
 import { cn } from "../../utils/cn";
 
-const button = cva("px-3 py-1 flex items-center justify-center rounded-full", {
-  variants: {
-    variant: {
-      primary: ["bg-blue-500"],
-      success: ["bg-green-500"],
-      danger: ["bg-red-500"],
+const button = cva(
+  "px-3 py-1 flex items-center justify-center rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed lg:py-2 lg:px-4",
+  {
+    variants: {
+      variant: {
+        primary: ["bg-blue-500"],
+        success: ["bg-green-500"],
+        danger: ["bg-red-500"],
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
     },
   },
-  defaultVariants: {
-    variant: "primary",
-  },
-});
+);
 
 type ButtonProps = React.PropsWithChildren<
   {} & React.ButtonHTMLAttributes<HTMLButtonElement> &

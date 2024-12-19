@@ -29,6 +29,6 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - SESSION_SECRET=${SESSION_SECRET}
       - JWT_SECRET=${JWT_SECRET}
-      - ENVIRONMENT=dev
+      - ENVIRONMENT="debug"
     volumes:
       - ../api/:/api/

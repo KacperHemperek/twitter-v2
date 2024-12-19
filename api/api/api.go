@@ -87,6 +87,27 @@ func (ah *APIHandler) Handle(h HandlerFunc) http.HandlerFunc {
 		err := h(w, cr)
 
 		if err != nil {
+			slog.Debug("validation error", "error", err.Error())
+			var validationErr validator.ValidationErrors
+
+			if errors.As(err, &validationErr) {
+				slog.Error(
+					"validation error",
+					"method", r.Method,
+					"url", r.URL.Path,
+					"error", validationErr.Error(),
+					"status", http.StatusBadRequest,
+				)
+				for _, e := range validationErr {
+					slog.Debug("field error", "message", e.Error())
+				}
+				if jsonErr := JSON(w, NewBadRequestError("validation for endpoint failed"), http.StatusBadRequest); jsonErr != nil {
+					slog.Error("json return error", "error", jsonErr.Error())
+					// This should never happen if it does program should panic
+					panic(1)
+				}
+				return
+			}
 			var apiError *APIError
 			if errors.As(err, &apiError) {
 				slog.Error(
@@ -97,27 +118,25 @@ func (ah *APIHandler) Handle(h HandlerFunc) http.HandlerFunc {
 					"status", apiError.Status,
 				)
 
-				jsonErr := JSON(w, apiError, apiError.Status)
-				if jsonErr != nil {
+				if jsonErr := JSON(w, apiError, apiError.Status); jsonErr != nil {
 					slog.Error("json return error", "error", jsonErr.Error())
 					// This should never happen if it does program should panic
 					panic(1)
 				}
-			} else {
-				slog.Error(
-					"unhandled http handler",
-					"method", r.Method,
-					"url", r.URL.Path,
-					"error", err.Error(),
-					"status", http.StatusInternalServerError,
-				)
-				apiError = NewAPIError("Unhandled Server Error", http.StatusInternalServerError)
-				jsonErr := JSON(w, apiError, apiError.Status)
-				if jsonErr != nil {
-					slog.Error("json return error", "error", jsonErr.Error())
-					// This should never happen if it does program should panic
-					panic(1)
-				}
+				return
+			}
+			slog.Error(
+				"unhandled http error",
+				"method", r.Method,
+				"url", r.URL.Path,
+				"error", err.Error(),
+				"status", http.StatusInternalServerError,
+			)
+			apiError = NewAPIError("Unhandled Server Error", http.StatusInternalServerError)
+			if jsonErr := JSON(w, apiError, apiError.Status); jsonErr != nil {
+				slog.Error("json return error", "error", jsonErr.Error())
+				// This should never happen if it does program should panic
+				panic(1)
 			}
 		} else {
 			slog.Info(
