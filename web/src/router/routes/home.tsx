@@ -5,12 +5,16 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { ApiErrorResponse } from "../../types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { cn } from "../../utils/cn";
+
+const MAX_TWEET_LENGTH = 180;
 
 const createTweetSchema = z.object({
   body: z
     .string()
     .min(1, "Tweet must be at least 1 character long")
-    .max(180, "Tweet must be at most 180 characters long"),
+    .max(MAX_TWEET_LENGTH, "Tweet must be at most 180 characters long"),
 });
 
 type CreateTweetFormValue = z.infer<typeof createTweetSchema>;
@@ -42,6 +46,7 @@ const CreateTweetForm = () => {
     defaultValues: {
       body: "",
     },
+    resolver: zodResolver(createTweetSchema),
   });
 
   const sendTweet = (data: CreateTweetFormValue) => {
@@ -56,17 +61,30 @@ const CreateTweetForm = () => {
     >
       <textarea
         {...form.register("body")}
-        className="w-full p-2 bg-gray-900 border border-gray-800 rounded resize-none mb-4"
+        className="w-full p-2 bg-gray-900 border border-gray-800 rounded mb-4 placeholder:text-gray-500"
         placeholder="What's happening?"
+        rows={4}
       ></textarea>
-      <TwButton
-        aria-disabled={mutation.isPending}
-        disabled={mutation.isPending}
-        className="max-w-fit self-end"
-        type="submit"
-      >
-        Tweet
-      </TwButton>
+      <div className="flex justify-between">
+        <div
+          className={cn(
+            !form.formState.isValid && form.formState.isDirty
+              ? "text-red-500"
+              : "text-gray-500",
+            "text-sm",
+          )}
+        >
+          {form.watch("body").length}/{MAX_TWEET_LENGTH}
+        </div>
+        <TwButton
+          aria-disabled={mutation.isPending}
+          disabled={mutation.isPending || !form.formState.isValid}
+          className="max-w-fit self-end"
+          type="submit"
+        >
+          Tweet
+        </TwButton>
+      </div>
     </form>
   );
 };

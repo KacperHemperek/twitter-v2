@@ -55,6 +55,7 @@ const NavLink = ({ href, children, variant = "default" }: NavLinkProps) => {
 
 export const BaseLayout = () => {
   const { user } = useAuth();
+  const navRef = React.useRef<HTMLDivElement>(null);
 
   const loggedInLinks: NavLinkProps[] = React.useMemo(
     () => [
@@ -98,10 +99,15 @@ export const BaseLayout = () => {
   );
 
   return (
-    <div>
+    <div
+      style={{ paddingBottom: navRef.current?.getBoundingClientRect().height }}
+    >
       <Outlet />
       {/*Nav bar*/}
-      <div className="fixed flex justify-evenly bottom-0 w-full border-t border-gray-500">
+      <div
+        ref={navRef}
+        className="fixed flex justify-evenly bottom-0 w-full border-t border-gray-500 bg-gray-950 z-40"
+      >
         {links.map((link) => (
           <NavLink key={link.href} href={link.href} variant={link.variant}>
             {link.children}
