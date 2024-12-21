@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/kacperhemperek/twitter-v2/models"
@@ -89,7 +90,6 @@ func (ah *APIHandler) Handle(h HandlerFunc) http.HandlerFunc {
 		if err != nil {
 			slog.Debug("validation error", "error", err.Error())
 			var validationErr validator.ValidationErrors
-
 			if errors.As(err, &validationErr) {
 				slog.Error(
 					"validation error",
@@ -98,16 +98,23 @@ func (ah *APIHandler) Handle(h HandlerFunc) http.HandlerFunc {
 					"error", validationErr.Error(),
 					"status", http.StatusBadRequest,
 				)
+				errors := map[string]string{}
 				for _, e := range validationErr {
-					slog.Debug("field error", "message", e.Error())
+					errors[e.Field()] = mapValidationError(e)
 				}
-				if jsonErr := JSON(w, NewBadRequestError("validation for endpoint failed"), http.StatusBadRequest); jsonErr != nil {
+				response := map[string]any{
+					"errors":  errors,
+					"message": "Invalid request body",
+					"status":  http.StatusBadRequest,
+				}
+				if jsonErr := JSON(w, response, http.StatusBadRequest); jsonErr != nil {
 					slog.Error("json return error", "error", jsonErr.Error())
 					// This should never happen if it does program should panic
 					panic(1)
 				}
 				return
 			}
+
 			var apiError *APIError
 			if errors.As(err, &apiError) {
 				slog.Error(
@@ -125,6 +132,7 @@ func (ah *APIHandler) Handle(h HandlerFunc) http.HandlerFunc {
 				}
 				return
 			}
+
 			slog.Error(
 				"unhandled http error",
 				"method", r.Method,
@@ -146,6 +154,18 @@ func (ah *APIHandler) Handle(h HandlerFunc) http.HandlerFunc {
 			)
 		}
 	}
+}
+
+func mapValidationError(err validator.FieldError) string {
+	errMap := map[string]string{
+		"max":      "is too long, cannot be more then (val)",
+		"min":      "is too short, cannot be less then (val)",
+		"required": "is required",
+	}
+
+	error := errMap[err.Tag()]
+	message := fmt.Sprintf("%s %s", err.Field(), error)
+	return strings.Replace(message, "(val)", err.Param(), 1)
 }
 
 type APIError struct {
